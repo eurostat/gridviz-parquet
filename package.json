@@ -1,0 +1,58 @@
+{
+    "name": "gridviz-parquet",
+    "version": "1.0.0",
+    "description": "Parquet format support for GridViz",
+    "keywords": [],
+    "homepage": "https://github.com/eurostat/gridviz-parquet",
+    "author": "Joseph Davies, Julien Gaffuri",
+    "license": "EUPL-1.2",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/eurostat/gridviz-parquet.git"
+    },
+    "bugs": {
+        "url": "https://github.com/eurostat/gridviz-parquet/issues",
+        "email": "Joseph.DAVIES@ext.ec.europa.eu"
+    },
+    "type": "module",
+    "main": "dist/gridviz-parquet.min.js",
+    "module": "dist/gridviz-parquet.min.js",
+    "exports": {
+        "umd": "./dist/gridviz-parquet.min.js",
+        "default": "./src/index.js"
+    },
+    "scripts": {
+        "start": "export NODE_OPTIONS=--openssl-legacy-provider && webpack --config webpack.config.dev.cjs",
+        "start-dev": "webpack --config webpack.config.dev.cjs",
+        "server": "webpack serve -c webpack.config.dev.js --static ./",
+        "doc": "./node_modules/.bin/jsdoc src/ src/dataset src/legend src/style -d docs/jsdoc",
+        "build-prod": "webpack --config webpack.config.prod.cjs",
+        "test": "jest"
+    },
+    "files": [
+        "dist/**/*.js",
+        "src/**/*.js"
+    ],
+    "dependencies": {
+        "apache-arrow": "^10.0.1",
+        "gridviz": "^2.0.40"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.9.0",
+        "@babel/plugin-transform-runtime": "^7.12.1",
+        "@babel/preset-env": "^7.9.0",
+        "@babel/runtime": "^7.12.1",
+        "babel-loader": "^8.1.0",
+        "jest": "^26.6.1",
+        "jshint": "^2.12.0",
+        "prettier": "2.8.8",
+        "puppeteer": "^9.1.1",
+        "webpack": "^5.75.0",
+        "webpack-cli": "^5.0.0",
+        "webpack-dev-server": "^4.11.1",
+        "webpack-livereload-plugin": "^3.0.2"
+    },
+    "engines": {
+        "node": ">=14"
+    }
+}
