@@ -18,7 +18,7 @@ import { tableFromIPC } from 'apache-arrow'
  *
  * @author Joseph Davies, Julien Gaffuri
  */
-export class TiledGrid extends DatasetComponent {
+export class TiledParquetGrid extends DatasetComponent {
     /**
      * @param {string} url The URL of the dataset.
      * @param {App} app The application.
