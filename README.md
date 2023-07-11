@@ -1,3 +1,3 @@
-# gridviz-parquet
+# GridViz-parquet
 
-Parquet format support for [GridViz](https://github.com/eurostat/gridviz/).
+[Parquet format](https://parquet.apache.org/) support for [GridViz](https://github.com/eurostat/gridviz/).
