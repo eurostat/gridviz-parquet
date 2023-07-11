@@ -111,12 +111,3 @@ export class ParquetGrid extends DatasetComponent {
         }
     }
 }
-
-/**
- * Retrieve parquet wasm decoder
- */
-const getReadParquet = async () => {
-    //const parquetModule = await import("https://unpkg.com/parquet-wasm@0.4.0-beta.5/esm/arrow2.js");
-    //await parquetModule.default();
-    //return parquetModule.readParquet;
-}

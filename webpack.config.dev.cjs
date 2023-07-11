@@ -5,7 +5,7 @@ module.exports = {
     mode: 'development',
     output: {
         filename: 'gridviz-parquet.js',
-        library: 'gviz_sm',
+        library: 'gviz_par',
         libraryTarget: 'umd',
     },
     plugins: [new LiveReloadPlugin()],

@@ -2,7 +2,7 @@ module.exports = {
     mode: 'production',
     output: {
         filename: 'gridviz-parquet.min.js',
-        library: 'gviz_sm',
+        library: 'gviz_par',
         libraryTarget: 'umd',
     },
     module: {
