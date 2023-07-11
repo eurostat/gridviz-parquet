@@ -1,2 +1,3 @@
 # gridviz-parquet
-Extention of gridviz library for parquet format
+
+Parquet format support for GridViz.
