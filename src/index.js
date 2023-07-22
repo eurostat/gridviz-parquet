@@ -17,18 +17,43 @@ import { ParquetGrid } from "./ParquetGrid.js"
 * @param {object=} opts The parameters of the dataset and layer.
 * @returns {object}
 */
-export const addParquetGridLayer = function(app, url, resolution, styles, opts) {
+export const addParquetGridLayer = function (app, url, resolution, styles, opts) {
     const ds = new Dataset([new ParquetGrid(url, resolution, opts).getData(undefined, () => { app.cg.redraw(); })], [], opts)
     return app.addLayerFromDataset(ds, styles, opts);
 }
 
 
-export const addMultiScaleTiledGridLayer(app, resolutions, resToURL, styles, opts) {
+/**
+ *
+* @param {object} app The gridviz application.
+ * @param {Array.<number>} resolutions
+ * @param {function(number):string} resToURL
+* @param {Array.<object>} styles The styles, ordered in drawing order.
+ * @param {object=} opts The parameters of the dataset and layer.
+ * @returns {this}
+ */
+export const addMultiScaleParquetGridLayer = function (app, resolutions, resToURL, styles, opts) {
+    const ds = Dataset.make(
+        resolutions,
+        (res) =>
+            new ParquetGrid(resToURL(res), res, opts).getData(undefined, () => {
+                app.cg.redraw()
+            }),
+        opts
+    )
+    return app.addLayerFromDataset(ds, styles, opts)
+}
+
+
+/*
+export const addParquetMultiScaleTiledGridLayer(app, resolutions, resToURL, styles, opts) {
     //TODO do like for CSV case
     //const ds = new Dataset([new ParquetGrid(url, resolution, opts).getData(undefined, () => { app.cg.redraw(); })], [], opts)
-
     //return app.addLayerFromDataset(ds, styles, opts)
 }
+*/
+
+
 
 //test utilisation of that:
 //<script src="https://unpkg.com/parquet-wasm@0.4.0-beta.5/esm/arrow2.js"></script>
