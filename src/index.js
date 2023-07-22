@@ -35,10 +35,7 @@ export const addParquetGridLayer = function (app, url, resolution, styles, opts)
 export const addMultiScaleParquetGridLayer = function (app, resolutions, resToURL, styles, opts) {
     const ds = Dataset.make(
         resolutions,
-        (res) =>
-            new ParquetGrid(resToURL(res), res, opts).getData(undefined, () => {
-                app.cg.redraw()
-            }),
+        (res) => new ParquetGrid(resToURL(res), res, opts).getData(undefined, () => { app.cg.redraw() }),
         opts
     )
     return app.addLayerFromDataset(ds, styles, opts)
@@ -52,7 +49,7 @@ export const addMultiScaleParquetGridLayer = function (app, resolutions, resToUR
  * @param {{visible?:boolean,minZoom?:number,maxZoom?:number,pixNb?:number,cellInfoHTML?:function(object):string, preprocess?:function(object):boolean}} opts
  * @returns {object}
  */
-export const addTiledParquetGridLayer = function(app, url, styles, opts) {
+export const addTiledParquetGridLayer = function (app, url, styles, opts) {
     const ds = new Dataset(
         [new TiledParquetGrid(url, app, opts).loadInfo(() => { app.cg.redraw() }),],
         [],
@@ -62,7 +59,25 @@ export const addTiledParquetGridLayer = function(app, url, styles, opts) {
 }
 
 
-//TODO multiscale tiled parquet
+/**
+* @param {object} app The gridviz application.
+ * @param {Array.<number>} resolutions
+ * @param {function(number):string} resToURL
+* @param {Array.<object>} styles The styles, ordered in drawing order.
+ * @param {object=} opts The parameters of the dataset and layer.
+ * @returns {object}
+ */
+export const addMultiScaleTiledParquetGridLayer = function (app, resolutions, resToURL, styles, opts) {
+    const ds = Dataset.make(
+        resolutions,
+        (res) => new TiledParquetGrid(resToURL(res), app, opts).loadInfo(() => { app.cg.redraw() }),
+        opts
+    )
+    return app.addLayerFromDataset(ds, styles, opts)
+}
+
+
+
 
 
 

@@ -24,30 +24,28 @@
 
             const app = new gviz.App(containerDiv)
                 .setGeoCenter({ x: 4500000, y: 2900000 })
-                .setZoomFactor(3000)
+                .setZoomFactor(500)
 
-
-            gviz_par.addParquetGridLayer(app,
-                //the resolution values, ordered
+            //add parquet layer
+            gviz_par.addMultiScaleTiledParquetGridLayer(app,
+                //resolutions
                 [1000, 2000, 5000, 10000, 20000, 50000, 100000],
-                //the URL, from the resolution
-                (r) =>
-                    'https://raw.githubusercontent.com/jgaffuri/tiledgrids/main/data/europe/population_/' +
-                    r +
-                    'm/',
+                //data URL
+                (res) => 'https://raw.githubusercontent.com/jgaffuri/tiledgrids/main/data/europe/population_/' + res + 'm/',
                 //the styles
                 [
                     new gviz.SquareColorWGLStyle({
                         colorCol: 'pop2018',
-                        tFun: (value, resolution, stats) => gviz.sExp(value / stats.max, -50),
+                        tFun: (value) => gviz.sExp(Math.min(value / 100000, 1), -15),
                     }),
                 ],
                 {
                     //the maximum pixel size before jumping to a lower resolution
-                    pixNb: 3,
-                    readParquetFun: readParquet,
+                    pixNb: 6,
+                    readParquetFun: readParquet
                 }
             )
+
         })
     </script>
 </body>
