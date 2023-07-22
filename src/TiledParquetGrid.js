@@ -1,15 +1,14 @@
 //@ts-check
 'use strict'
 
-/** @typedef {{ dims: object, crs: string, tileSizeCell: number, originPoint: {x:number,y:number}, resolutionGeo: number, tilingBounds:import("../Dataset").Envelope, format:import("../DatasetComponent").Format }} GridInfo */
+/** @typedef {{ dims: object, crs: string, tileSizeCell: number, originPoint: {x:number,y:number}, resolutionGeo: number, tilingBounds:object, format:object }} GridInfo */
 
 // internal
 import { GridTile } from 'gridviz'
-import { App } from 'gridviz'
 import { DatasetComponent } from 'gridviz'
 
 // external
-import { json, csv } from 'd3-fetch'
+import { json } from 'd3-fetch'
 import { tableFromIPC } from 'apache-arrow'
 
 /**
@@ -20,7 +19,7 @@ import { tableFromIPC } from 'apache-arrow'
 export class TiledParquetGrid extends DatasetComponent {
     /**
      * @param {string} url The URL of the dataset.
-     * @param {App} app The application.
+     * @param {object} app The application.
      * @param {{preprocess?:(function(object):boolean), readParquetFun?:Function }} opts
      */
     constructor(url, app, opts = {}) {
@@ -28,7 +27,7 @@ export class TiledParquetGrid extends DatasetComponent {
 
         /**
          * The app being used.
-         * @type {App}
+         * @type {object}
          */
         this.app = app
 
@@ -130,8 +129,6 @@ export class TiledParquetGrid extends DatasetComponent {
         /** @type {object} */
         const gb = this.info.tilingBounds
 
-        const format = this.info.format
-
         for (let xT = Math.max(tb.xMin, gb.xMin); xT <= Math.min(tb.xMax, gb.xMax); xT++) {
             for (let yT = Math.max(tb.yMin, gb.yMin); yT <= Math.min(tb.yMax, gb.yMax); yT++) {
                 //prepare cache
@@ -140,82 +137,84 @@ export class TiledParquetGrid extends DatasetComponent {
                 //check if tile exists in the cache
                 /** @type {GridTile} */
                 let tile = this.cache[xT][yT]
+
                 if (tile) continue
 
                 //mark tile as loading
-                this.cache[xT][yT] = 'loading'
-                    ; (async () => {
-                        //request tile
-                        /** @type {Array.<object>}  */
-                        let cells
+                this.cache[xT][yT] = 'loading';
 
-                        try {
-                            if (!this.readParquetFun)
-                                throw new Error('readParquet function needed for parquet dataset')
+                (async () => {
+                    //request tile
+                    /** @type {Array.<object>}  */
+                    let cells
 
-                            const resp = await fetch(this.url + xT + '/' + yT + '.parquet')
-                            const parquetUint8Array = new Uint8Array(await resp.arrayBuffer())
-                            const arrowUint8Array = this.readParquetFun(parquetUint8Array)
-                            const t = tableFromIPC(arrowUint8Array)
+                    try {
+                        if (!this.readParquetFun)
+                            throw new Error('readParquet function needed for parquet dataset')
 
-                            cells = []
-                            for (const e of t) {
-                                //get cell
-                                const c = e.toJSON()
+                        const resp = await fetch(this.url + xT + '/' + yT + '.parquet')
+                        const parquetUint8Array = new Uint8Array(await resp.arrayBuffer())
+                        const arrowUint8Array = this.readParquetFun(parquetUint8Array)
+                        const t = tableFromIPC(arrowUint8Array)
 
-                                //preprocess/filter
-                                if (this.preprocess) {
-                                    const b = this.preprocess(c)
-                                    if (b == false) continue
-                                    cells.push(c)
-                                } else {
-                                    cells.push(c)
-                                }
+                        cells = []
+                        for (const e of t) {
+                            //get cell
+                            const c = e.toJSON()
+
+                            //preprocess/filter
+                            if (this.preprocess) {
+                                const b = this.preprocess(c)
+                                if (b == false) continue
+                                cells.push(c)
+                            } else {
+                                cells.push(c)
                             }
-                        } catch (error) {
-                            //mark as failed
-                            this.cache[xT][yT] = 'failed'
-                            return
                         }
+                    } catch (error) {
+                        //mark as failed
+                        this.cache[xT][yT] = 'failed'
+                        return
+                    }
 
-                        //store tile in cache
-                        if (!this.info) {
-                            console.error('Tile info inknown')
-                            return
-                        }
-                        const tile_ = new GridTile(cells, xT, yT, this.info)
-                        this.cache[xT][yT] = tile_
+                    //store tile in cache
+                    if (!this.info) {
+                        console.error('Tile info inknown')
+                        return
+                    }
+                    const tile_ = new GridTile(cells, xT, yT, this.info)
+                    this.cache[xT][yT] = tile_
 
-                        //if no redraw is specified, then leave
-                        if (!redrawFun) return
+                    //if no redraw is specified, then leave
+                    if (!redrawFun) return
 
-                        //check if redraw is really needed, that is if:
+                    //check if redraw is really needed, that is if:
 
-                        // 1. the dataset belongs to a layer which is visible at the current zoom level
-                        let redraw = false
-                        //go through the layers
-                        const zf = this.app.getZoomFactor()
-                        for (const lay of this.app.layers) {
-                            if (!lay.visible) continue
-                            if (lay.getDatasetComponent(zf) != this) continue
-                            //found one layer. No need to seek more.
-                            redraw = true
-                            break
-                        }
+                    // 1. the dataset belongs to a layer which is visible at the current zoom level
+                    let redraw = false
+                    //go through the layers
+                    const zf = this.app.getZoomFactor()
+                    for (const lay of this.app.layers) {
+                        if (!lay.visible) continue
+                        if (lay.getDatasetComponent(zf) != this) continue
+                        //found one layer. No need to seek more.
+                        redraw = true
+                        break
+                    }
 
-                        if (!redraw) return
+                    if (!redraw) return
 
-                        // 2. the tile is within the view, that is its geo envelope intersects the viewer geo envelope.
-                        const env = this.app.updateExtentGeo()
-                        const envT = tile_.extGeo
-                        if (env.xMax <= envT.xMin) return
-                        if (env.xMin >= envT.xMax) return
-                        if (env.yMax <= envT.yMin) return
-                        if (env.yMin >= envT.yMax) return
+                    // 2. the tile is within the view, that is its geo envelope intersects the viewer geo envelope.
+                    const env = this.app.updateExtentGeo()
+                    const envT = tile_.extGeo
+                    if (env.xMax <= envT.xMin) return
+                    if (env.xMin >= envT.xMax) return
+                    if (env.yMax <= envT.yMin) return
+                    if (env.yMin >= envT.yMax) return
 
-                        //redraw
-                        redrawFun()
-                    })()
+                    //redraw
+                    redrawFun()
+                })()
             }
         }
         return this
