@@ -4,10 +4,9 @@
 /** @typedef {{ dims: object, crs: string, tileSizeCell: number, originPoint: {x:number,y:number}, resolutionGeo: number, tilingBounds:import("../Dataset").Envelope, format:import("../DatasetComponent").Format }} GridInfo */
 
 // internal
-import { GridTile } from './GridTile.js'
-import { App } from '../App.js'
-import { DatasetComponent } from '../DatasetComponent.js'
-import { monitor, monitorDuration } from '../utils/Utils.js'
+import { GridTile } from 'gridviz'
+import { App } from 'gridviz'
+import { DatasetComponent } from 'gridviz'
 
 // external
 import { json, csv } from 'd3-fetch'
@@ -22,7 +21,7 @@ export class TiledParquetGrid extends DatasetComponent {
     /**
      * @param {string} url The URL of the dataset.
      * @param {App} app The application.
-     * @param {{preprocess?:(function(import("../Dataset").Cell):boolean), readParquetFun?:Function }} opts
+     * @param {{preprocess?:(function(object):boolean), readParquetFun?:Function }} opts
      */
     constructor(url, app, opts = {}) {
         super(url, 0, opts)
@@ -67,7 +66,7 @@ export class TiledParquetGrid extends DatasetComponent {
      */
     loadInfo(callback) {
         if (!this.info && this.infoLoadingStatus === 'notLoaded') {
-            ;(async () => {
+            ; (async () => {
                 try {
                     const data = await json(this.url + 'info.json')
                     this.info = data
@@ -88,12 +87,12 @@ export class TiledParquetGrid extends DatasetComponent {
      * Compute a tiling envelope from a geographical envelope.
      * This is the function to use to know which tiles to download for a geographical view.
      *
-     * @param {import("../Dataset").Envelope} e
-     * @returns {import("../Dataset").Envelope|undefined}
+     * @param {object} e
+     * @returns {object|undefined}
      */
     getTilingEnvelope(e) {
         if (!this.info) {
-            this.loadInfo(() => {})
+            this.loadInfo(() => { })
             return
         }
 
@@ -112,7 +111,7 @@ export class TiledParquetGrid extends DatasetComponent {
     /**
      * Request data within a geographic envelope.
      *
-     * @param {import("../Dataset").Envelope} extGeo
+     * @param {object} extGeo
      * @param {function():void} redrawFun
      * @returns {this}
      */
@@ -123,12 +122,12 @@ export class TiledParquetGrid extends DatasetComponent {
         if (!this.info) return this
 
         //tiles within the scope
-        /** @type {import("../Dataset").Envelope|undefined} */
+        /** @type {object|undefined} */
         const tb = this.getTilingEnvelope(extGeo)
         if (!tb) return this
 
         //grid bounds
-        /** @type {import("../Dataset").Envelope} */
+        /** @type {object} */
         const gb = this.info.tilingBounds
 
         const format = this.info.format
@@ -145,33 +144,12 @@ export class TiledParquetGrid extends DatasetComponent {
 
                 //mark tile as loading
                 this.cache[xT][yT] = 'loading'
-                ;(async () => {
-                    //request tile
-                    /** @type {Array.<import("../Dataset").Cell>}  */
-                    let cells
+                    ; (async () => {
+                        //request tile
+                        /** @type {Array.<object>}  */
+                        let cells
 
-                    try {
-                        if (!format || format === 'CSV') {
-                            /** @type {Array.<import("../Dataset").Cell>}  */
-                            // @ts-ignore
-                            const data = await csv(this.url + xT + '/' + yT + '.csv')
-
-                            if (monitor) monitorDuration('*** TiledGrid parse start')
-
-                            //preprocess/filter
-                            if (this.preprocess) {
-                                cells = []
-                                for (const c of data) {
-                                    const b = this.preprocess(c)
-                                    if (b == false) continue
-                                    cells.push(c)
-                                }
-                            } else {
-                                cells = data
-                            }
-
-                            if (monitor) monitorDuration('preprocess / filter')
-                        } else if (format === 'PARQUET') {
+                        try {
                             if (!this.readParquetFun)
                                 throw new Error('readParquet function needed for parquet dataset')
 
@@ -194,57 +172,50 @@ export class TiledParquetGrid extends DatasetComponent {
                                     cells.push(c)
                                 }
                             }
-                        } else throw new Error('Tiled format not supported: ' + format)
-                    } catch (error) {
-                        //mark as failed
-                        this.cache[xT][yT] = 'failed'
-                        return
-                    }
+                        } catch (error) {
+                            //mark as failed
+                            this.cache[xT][yT] = 'failed'
+                            return
+                        }
 
-                    //store tile in cache
-                    if (!this.info) {
-                        console.error('Tile info inknown')
-                        return
-                    }
-                    const tile_ = new GridTile(cells, xT, yT, this.info)
-                    this.cache[xT][yT] = tile_
+                        //store tile in cache
+                        if (!this.info) {
+                            console.error('Tile info inknown')
+                            return
+                        }
+                        const tile_ = new GridTile(cells, xT, yT, this.info)
+                        this.cache[xT][yT] = tile_
 
-                    if (monitor) monitorDuration('storage')
+                        //if no redraw is specified, then leave
+                        if (!redrawFun) return
 
-                    //if no redraw is specified, then leave
-                    if (!redrawFun) return
+                        //check if redraw is really needed, that is if:
 
-                    //check if redraw is really needed, that is if:
+                        // 1. the dataset belongs to a layer which is visible at the current zoom level
+                        let redraw = false
+                        //go through the layers
+                        const zf = this.app.getZoomFactor()
+                        for (const lay of this.app.layers) {
+                            if (!lay.visible) continue
+                            if (lay.getDatasetComponent(zf) != this) continue
+                            //found one layer. No need to seek more.
+                            redraw = true
+                            break
+                        }
 
-                    // 1. the dataset belongs to a layer which is visible at the current zoom level
-                    let redraw = false
-                    //go through the layers
-                    const zf = this.app.getZoomFactor()
-                    for (const lay of this.app.layers) {
-                        if (!lay.visible) continue
-                        if (lay.getDatasetComponent(zf) != this) continue
-                        //found one layer. No need to seek more.
-                        redraw = true
-                        break
-                    }
-                    if (monitor) monitorDuration('check redraw 1')
+                        if (!redraw) return
 
-                    if (!redraw) return
+                        // 2. the tile is within the view, that is its geo envelope intersects the viewer geo envelope.
+                        const env = this.app.updateExtentGeo()
+                        const envT = tile_.extGeo
+                        if (env.xMax <= envT.xMin) return
+                        if (env.xMin >= envT.xMax) return
+                        if (env.yMax <= envT.yMin) return
+                        if (env.yMin >= envT.yMax) return
 
-                    // 2. the tile is within the view, that is its geo envelope intersects the viewer geo envelope.
-                    const env = this.app.updateExtentGeo()
-                    const envT = tile_.extGeo
-                    if (env.xMax <= envT.xMin) return
-                    if (env.xMin >= envT.xMax) return
-                    if (env.yMax <= envT.yMin) return
-                    if (env.yMin >= envT.yMax) return
-
-                    if (monitor) monitorDuration('check redraw 2')
-                    if (monitor) monitorDuration('*** TiledGrid parse end')
-
-                    //redraw
-                    redrawFun()
-                })()
+                        //redraw
+                        redrawFun()
+                    })()
             }
         }
         return this
@@ -253,7 +224,7 @@ export class TiledParquetGrid extends DatasetComponent {
     /**
      * Fill the view cache with all cells which are within a geographical envelope.
      * @abstract
-     * @param {import("../Dataset").Envelope} extGeo
+     * @param {object} extGeo
      * @returns {void}
      */
     updateViewCache(extGeo) {
@@ -263,13 +234,11 @@ export class TiledParquetGrid extends DatasetComponent {
         //check if info has been loaded
         if (!this.info) return
 
-        //tiles within the scope
-        /** @type {import("../Dataset").Envelope|undefined} */
+        //tiles within the scope */
         const tb = this.getTilingEnvelope(extGeo)
         if (!tb) return
 
-        //grid bounds
-        /** @type {import("../Dataset").Envelope} */
+        //grid bounds */
         const gb = this.info.tilingBounds
 
         for (let xT = Math.max(tb.xMin, gb.xMin); xT <= Math.min(tb.xMax, gb.xMax); xT++) {

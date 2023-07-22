@@ -23,6 +23,13 @@ export const addParquetGridLayer = function(app, url, resolution, styles, opts) 
 }
 
 
+export const addMultiScaleTiledGridLayer(app, resolutions, resToURL, styles, opts) {
+    //TODO do like for CSV case
+    //const ds = new Dataset([new ParquetGrid(url, resolution, opts).getData(undefined, () => { app.cg.redraw(); })], [], opts)
+
+    //return app.addLayerFromDataset(ds, styles, opts)
+}
+
 //test utilisation of that:
 //<script src="https://unpkg.com/parquet-wasm@0.4.0-beta.5/esm/arrow2.js"></script>
 
