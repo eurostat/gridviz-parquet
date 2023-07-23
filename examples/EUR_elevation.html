@@ -75,7 +75,8 @@
             })
 
             //elevation dataset
-            const ds = app.makeMultiScaleTiledGridDataset(
+            const ds = gviz_par.makeMultiScaleTiledParquetGridDataset(
+                app,
                 [100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000],
                 (r) =>
                     'https://raw.githubusercontent.com/jgaffuri/tiledgrids/main/data/europe/elevation_/' +
@@ -85,7 +86,8 @@
             )
 
             //lc dataset
-            const dsLC = app.makeMultiScaleTiledGridDataset(
+            const dsLC = gviz_par.makeMultiScaleTiledParquetGridDataset(
+                app,
                 [100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000],
                 (r) =>
                     'https://raw.githubusercontent.com/jgaffuri/tiledgrids/main/data/europe/clc_/' +
