@@ -36,7 +36,7 @@
                 [
                     new gviz.SquareColorWGLStyle({
                         colorCol: 'pop2018',
-                        tFun: (value) => gviz.sExp(Math.min(value / 100000, 1), -15),
+                        tFun: (value, resolution, stats) => gviz.sExp(value / stats.max, -50),
                     }),
                 ],
                 {
