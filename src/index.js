@@ -8,6 +8,14 @@ import { Dataset } from 'gridviz'
 import { ParquetGrid } from "./ParquetGrid.js"
 import { TiledParquetGrid } from "./TiledParquetGrid.js"
 
+
+
+
+
+export const makeParquetGridDataset = function (app, url, resolution, opts) {
+    return new Dataset([new ParquetGrid(url, resolution, opts).getData(undefined, () => { app.cg.redraw(); })], [], opts)
+}
+
 /**
 * Add a layer from a parquet grid dataset.
 *
@@ -19,10 +27,23 @@ import { TiledParquetGrid } from "./TiledParquetGrid.js"
 * @returns {object}
 */
 export const addParquetGridLayer = function (app, url, resolution, styles, opts) {
-    const ds = new Dataset([new ParquetGrid(url, resolution, opts).getData(undefined, () => { app.cg.redraw(); })], [], opts)
+    const ds = makeParquetGridDataset(app, url, resolution, opts)
     return app.addLayerFromDataset(ds, styles, opts);
 }
 
+
+
+
+
+
+
+export const makeMultiScaleParquetGridDataset = function (app, resolutions, resToURL, opts) {
+    return Dataset.make(
+        resolutions,
+        (res) => new ParquetGrid(resToURL(res), res, opts).getData(undefined, () => { app.cg.redraw() }),
+        opts
+    )
+}
 
 /**
 * @param {object} app The gridviz application.
@@ -33,14 +54,22 @@ export const addParquetGridLayer = function (app, url, resolution, styles, opts)
  * @returns {object}
  */
 export const addMultiScaleParquetGridLayer = function (app, resolutions, resToURL, styles, opts) {
-    const ds = Dataset.make(
-        resolutions,
-        (res) => new ParquetGrid(resToURL(res), res, opts).getData(undefined, () => { app.cg.redraw() }),
-        opts
-    )
+    const ds = makeMultiScaleParquetGridDataset(app, resolutions, resToURL, opts)
     return app.addLayerFromDataset(ds, styles, opts)
 }
 
+
+
+
+
+
+export const makeTiledParquetGridDataset = function (app, url, opts) {
+    return new Dataset(
+        [new TiledParquetGrid(url, app, opts).loadInfo(() => { app.cg.redraw() }),],
+        [],
+        opts
+    )
+}
 
 /**
 * @param {object} app The gridviz application.
@@ -50,14 +79,22 @@ export const addMultiScaleParquetGridLayer = function (app, resolutions, resToUR
  * @returns {object}
  */
 export const addTiledParquetGridLayer = function (app, url, styles, opts) {
-    const ds = new Dataset(
-        [new TiledParquetGrid(url, app, opts).loadInfo(() => { app.cg.redraw() }),],
-        [],
-        opts
-    )
+    const ds = makeTiledParquetGridDataset(app, url, opts)
     return app.addLayerFromDataset(ds, styles, opts)
 }
 
+
+
+
+
+
+export const makeMultiScaleTiledParquetGridDataset = function (app, resolutions, resToURL, opts) {
+    return Dataset.make(
+        resolutions,
+        (res) => new TiledParquetGrid(resToURL(res), app, opts).loadInfo(() => { app.cg.redraw() }),
+        opts
+    )
+}
 
 /**
 * @param {object} app The gridviz application.
@@ -68,11 +105,7 @@ export const addTiledParquetGridLayer = function (app, url, styles, opts) {
  * @returns {object}
  */
 export const addMultiScaleTiledParquetGridLayer = function (app, resolutions, resToURL, styles, opts) {
-    const ds = Dataset.make(
-        resolutions,
-        (res) => new TiledParquetGrid(resToURL(res), app, opts).loadInfo(() => { app.cg.redraw() }),
-        opts
-    )
+    const ds = makeMultiScaleTiledParquetGridDataset(app, resolutions, resToURL, opts)
     return app.addLayerFromDataset(ds, styles, opts)
 }
 
