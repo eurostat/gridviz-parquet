@@ -8,6 +8,9 @@ import { Dataset } from 'gridviz'
 import { ParquetGrid } from "./ParquetGrid.js"
 import { TiledParquetGrid } from "./TiledParquetGrid.js"
 
+//import { readParquet } from "parquet-wasm"
+//import { readParquet } from "parquet-wasm/bundler/arrow1.js";
+//import { readParquet } from "parquet-wasm/node2";
 
 
 
@@ -111,11 +114,14 @@ export const addMultiScaleTiledParquetGridLayer = function (app, resolutions, re
 
 
 
-
-
-
 //test utilisation of that:
 //<script src="https://unpkg.com/parquet-wasm@0.4.0-beta.5/esm/arrow2.js"></script>
+/*export const loadWasmParquetReader = async () => {
+    const parquetModule = await import("parquet-wasm")
+    return parquetModule.readParquet
+    //await parquetModule.default()
+    //return parquetModule.readParquet
+}*/
 
 
 /**
@@ -128,5 +134,3 @@ const getReadParquetP = ()=> async () => {
     return parquetModule.readParquet;
 }
 */
-
-

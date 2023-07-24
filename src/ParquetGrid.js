@@ -4,6 +4,20 @@
 import { DatasetComponent } from 'gridviz'
 import { tableFromIPC } from 'apache-arrow'
 //import { readParquet } from "parquet-wasm"
+//import { readParquet } from "parquet-wasm/bundler/arrow1.js";
+//import { readParquet } from "parquet-wasm/node2";
+
+//see https://www.npmjs.com/package/parquet-wasm
+
+//see https://observablehq.com/@bmschmidt/hello-parquet-wasm
+/*
+pq = {
+  const pq = await import('https://unpkg.com/parquet-wasm@0.1.1/web.js')
+  // default seems to need to resolve first?
+  await pq.default()
+  return pq
+}
+*/
 
 /**
  * A dataset composed of a single parquet file (not tiled).
@@ -28,6 +42,10 @@ export class ParquetGrid extends DatasetComponent {
          * @type {string}
          * @private  */
         this.infoLoadingStatus = 'notLoaded'
+
+        //console.log(readParquet)
+        //const pq = await import('https://unpkg.com/parquet-wasm@0.1.1/web.js')
+        //await pq.default()
 
         if (!opts.readParquetFun) throw new Error('readParquet function needed for parquet dataset')
 
