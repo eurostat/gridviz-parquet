@@ -40,36 +40,39 @@ export class ParquetGrid extends Dataset {
                     await parquetRead({
                         file: arrayBuffer,
                         onComplete: data => {
+
                             console.log(data)
+                            //TODO
+                            return
+
+                            //convert coordinates in numbers
+                            for (const c of data) {
+                                c.x = +c.x
+                                c.y = +c.y
+                            }
+
+                            //preprocess/filter
+                            if (this.preprocess) {
+                                this.cells = []
+                                for (const c of data) {
+                                    const b = this.preprocess(c)
+                                    if (b == false) continue
+                                    this.cells.push(c)
+                                }
+                            } else {
+                                this.cells = data
+                            }
+
+                            //TODO check if redraw is necessary
+                            //that is if the dataset belongs to a layer which is visible at the current zoom level
+
+                            //execute the callback, usually a draw function
+                            if (this.map) this.map.redraw()
+
+                            this.infoLoadingStatus = 'loaded'
                         }
                     })
-                    return
 
-                    //convert coordinates in numbers
-                    for (const c of data) {
-                        c.x = +c.x
-                        c.y = +c.y
-                    }
-
-                    //preprocess/filter
-                    if (this.preprocess) {
-                        this.cells = []
-                        for (const c of data) {
-                            const b = this.preprocess(c)
-                            if (b == false) continue
-                            this.cells.push(c)
-                        }
-                    } else {
-                        this.cells = data
-                    }
-
-                    //TODO check if redraw is necessary
-                    //that is if the dataset belongs to a layer which is visible at the current zoom level
-
-                    //execute the callback, usually a draw function
-                    if (this.map) this.map.redraw()
-
-                    this.infoLoadingStatus = 'loaded'
                 } catch (error) {
                     console.error(error);
                     //mark as failed
