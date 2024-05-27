@@ -34,7 +34,7 @@
         "src/**/*.js"
     ],
     "dependencies": {
-        "gridviz": "^3.0.7",
+        "gridviz": "^3.0.8",
         "hyparquet": "^0.9.6"
     },
     "devDependencies": {

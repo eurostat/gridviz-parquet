@@ -1,7 +1,7 @@
 //@ts-check
 'use strict'
 
-import { DatasetComponent } from 'gridviz'
+import { Dataset } from 'gridviz'
 import { parquetMetadata } from 'hyparquet'
 //import { tableFromIPC } from 'apache-arrow'
 //import { readParquet } from "parquet-wasm"
@@ -25,14 +25,10 @@ pq = {
  *
  * @author Julien Gaffuri
  */
-export class ParquetGrid extends DatasetComponent {
-    /**
-     * @param {string} url The URL of the dataset.
-     * @param {number} resolution The dataset resolution in geographical unit.
-     * @param {{preprocess?:(function(object):boolean), readParquetFun?:Function}} opts
-     */
-    constructor(url, resolution, opts = {}) {
-        super(url, resolution, opts)
+export class ParquetGrid extends Dataset {
+
+    constructor(map, url, resolution, opts = {}) {
+        super(map, url, resolution, opts)
 
         /**
          * @private
