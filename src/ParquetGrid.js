@@ -37,7 +37,7 @@ export class ParquetGrid extends Dataset {
 
                     console.log("aaaaaa !!!!")
 
-                    const res = fetch(this.url)
+                    const res = await fetch(this.url)
                     const arrayBuffer = await res.arrayBuffer()
                     const metadata = parquetMetadata(arrayBuffer)
                     console.log(metadata)
