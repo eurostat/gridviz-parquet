@@ -2,6 +2,7 @@
 'use strict'
 
 import { DatasetComponent } from 'gridviz'
+import { parquetMetadata } from 'hyparquet'
 //import { tableFromIPC } from 'apache-arrow'
 //import { readParquet } from "parquet-wasm"
 //import { readParquet } from "parquet-wasm/bundler/arrow1.js";
@@ -52,7 +53,7 @@ export class ParquetGrid extends DatasetComponent {
         /**
          * @type {Function}
          * @private  */
-        this.readParquetFun = opts.readParquetFun
+        //this.readParquetFun = opts.readParquetFun
     }
 
     /**
@@ -67,7 +68,13 @@ export class ParquetGrid extends DatasetComponent {
 
         //load data
         this.infoLoadingStatus = 'loading'
-        ;(async () => {
+
+        const res = fetch(this.url)
+        const arrayBuffer = res.arrayBuffer()
+        const metadata = parquetMetadata(arrayBuffer)
+        console.log(metadata)
+
+        /*;(async () => {
             try {
                 const resp = await fetch(this.url)
                 const parquetUint8Array = new Uint8Array(await resp.arrayBuffer())
@@ -104,7 +111,7 @@ export class ParquetGrid extends DatasetComponent {
                 this.infoLoadingStatus = 'failed'
                 this.cells = []
             }
-        })()
+        })()*/
 
         return this
     }
