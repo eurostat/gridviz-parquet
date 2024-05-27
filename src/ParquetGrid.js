@@ -2,7 +2,7 @@
 'use strict'
 
 import { DatasetComponent } from 'gridviz'
-import { tableFromIPC } from 'apache-arrow'
+//import { tableFromIPC } from 'apache-arrow'
 //import { readParquet } from "parquet-wasm"
 //import { readParquet } from "parquet-wasm/bundler/arrow1.js";
 //import { readParquet } from "parquet-wasm/node2";

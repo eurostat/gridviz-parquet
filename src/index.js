@@ -2,8 +2,8 @@
 'use strict'
 
 export { ParquetGrid } from "./ParquetGrid.js"
-export { TiledParquetGrid } from "./TiledParquetGrid.js"
-
+//export { TiledParquetGrid } from "./TiledParquetGrid.js"
+/*
 import { Dataset } from 'gridviz'
 import { ParquetGrid } from "./ParquetGrid.js"
 import { TiledParquetGrid } from "./TiledParquetGrid.js"
@@ -14,7 +14,7 @@ import { TiledParquetGrid } from "./TiledParquetGrid.js"
 
 
 
-
+/*
 export const makeParquetGridDataset = function (app, url, resolution, opts) {
     return new Dataset([new ParquetGrid(url, resolution, opts).getData(undefined, () => { app.cg.redraw(); })], [], opts)
 }
@@ -29,17 +29,17 @@ export const makeParquetGridDataset = function (app, url, resolution, opts) {
 * @param {object=} opts The parameters of the dataset and layer.
 * @returns {object}
 */
-export const addParquetGridLayer = function (app, url, resolution, styles, opts) {
+/*export const addParquetGridLayer = function (app, url, resolution, styles, opts) {
     const ds = makeParquetGridDataset(app, url, resolution, opts)
     return app.addLayerFromDataset(ds, styles, opts);
-}
+}*/
 
 
 
 
 
 
-
+/*
 export const makeMultiScaleParquetGridDataset = function (app, resolutions, resToURL, opts) {
     return Dataset.make(
         resolutions,
@@ -56,7 +56,7 @@ export const makeMultiScaleParquetGridDataset = function (app, resolutions, resT
  * @param {object=} opts The parameters of the dataset and layer.
  * @returns {object}
  */
-export const addMultiScaleParquetGridLayer = function (app, resolutions, resToURL, styles, opts) {
+/*export const addMultiScaleParquetGridLayer = function (app, resolutions, resToURL, styles, opts) {
     const ds = makeMultiScaleParquetGridDataset(app, resolutions, resToURL, opts)
     return app.addLayerFromDataset(ds, styles, opts)
 }
@@ -81,7 +81,7 @@ export const makeTiledParquetGridDataset = function (app, url, opts) {
  * @param {{visible?:boolean,minZoom?:number,maxZoom?:number,pixNb?:number,cellInfoHTML?:function(object):string, preprocess?:function(object):boolean}} opts
  * @returns {object}
  */
-export const addTiledParquetGridLayer = function (app, url, styles, opts) {
+/*export const addTiledParquetGridLayer = function (app, url, styles, opts) {
     const ds = makeTiledParquetGridDataset(app, url, opts)
     return app.addLayerFromDataset(ds, styles, opts)
 }
@@ -107,7 +107,7 @@ export const makeMultiScaleTiledParquetGridDataset = function (app, resolutions,
  * @param {object=} opts The parameters of the dataset and layer.
  * @returns {object}
  */
-export const addMultiScaleTiledParquetGridLayer = function (app, resolutions, resToURL, styles, opts) {
+/*export const addMultiScaleTiledParquetGridLayer = function (app, resolutions, resToURL, styles, opts) {
     const ds = makeMultiScaleTiledParquetGridDataset(app, resolutions, resToURL, opts)
     return app.addLayerFromDataset(ds, styles, opts)
 }
