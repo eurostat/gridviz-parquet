@@ -27,8 +27,6 @@ export class ParquetGrid extends Dataset {
 
     getData(e) {
 
-console.log("aaabjbgjhbghjdb")
-
         //check if data already loaded
         if (this.infoLoadingStatus != 'notLoaded') return this
 
