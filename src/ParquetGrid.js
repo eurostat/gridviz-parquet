@@ -39,7 +39,9 @@ export class ParquetGrid extends Dataset {
                     const arrayBuffer = await res.arrayBuffer()
                     await parquetRead({
                         file: arrayBuffer,
-                        onComplete: data => console.log(data)
+                        onComplete: data => {
+                            console.log(data)
+                        }
                     })
                     return
 
