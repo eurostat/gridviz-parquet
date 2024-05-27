@@ -2,7 +2,7 @@
 'use strict'
 
 import { Dataset } from 'gridviz'
-import { parquetMetadata } from 'hyparquet'
+import { parquetRead } from 'hyparquet'
 
 export class ParquetGrid extends Dataset {
 
@@ -39,9 +39,11 @@ export class ParquetGrid extends Dataset {
 
                     const res = await fetch(this.url)
                     const arrayBuffer = await res.arrayBuffer()
-                    const metadata = parquetMetadata(arrayBuffer)
-                    console.log(metadata)
-                    return           
+                    await parquetRead({
+                        file: arrayBuffer,
+                        onComplete: data => console.log(data)
+                    })
+                    return
 
                     //convert coordinates in numbers
                     for (const c of data) {
