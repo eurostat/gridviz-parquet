@@ -37,12 +37,11 @@ export class ParquetGrid extends Dataset {
 
                     console.log("aaaaaa !!!!")
 
-                    /*
                     const res = fetch(this.url)
-                    const arrayBuffer = res.arrayBuffer()
+                    const arrayBuffer = await res.arrayBuffer()
                     const metadata = parquetMetadata(arrayBuffer)
-                    console.log(metadata)*/
-return           
+                    console.log(metadata)
+                    return           
 
                     //convert coordinates in numbers
                     for (const c of data) {
@@ -70,6 +69,7 @@ return
 
                     this.infoLoadingStatus = 'loaded'
                 } catch (error) {
+                    console.error(error);
                     //mark as failed
                     this.infoLoadingStatus = 'failed'
                     this.cells = []
