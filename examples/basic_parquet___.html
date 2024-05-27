@@ -1,27 +1,19 @@
-<!DOCTYPE html>
-<html lang="en" style="height: 100%">
+<div id="map" style="height: 500px; width: 800px"></div>
 
-<head>
-    <meta name="viewport" content="maximum-scale=1.0, user-scalable=no" />
-    <title>Gridviz - example</title>
-</head>
+<script src="../dist/gridviz-parquet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gridviz"></script>
+<script>
 
-<body style="margin: 0; height: 100%; font-family: Arial, Helvetica, sans-serif; overflow: hidden">
-    <div id="viz-container" style="height: 100%; width: 100%"></div>
-
-    <script src="../dist/gridviz-parquet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/gridviz"></script>
-    <script>
-
-    console.log(gviz_par)
+    //console.log(gviz_par)
 
     //define map with initial view
     const map = new gridviz.Map(document.getElementById('map'), { x: 4500000, y: 2900000, z: 3000 })
         .addZoomButtons()
 
     //define dataset
-    const dataset = new gridviz.CSVGrid(map, "https://raw.githubusercontent.com/eurostat/gridviz/master/assets/csv/Europe/pop_2018_10km.csv", 10000)
-    //'https://raw.githubusercontent.com/eurostat/gridviz/master/assets/parquet/Europe/pop_2018_5km.parquet',
+    //const dataset = new gridviz.CSVGrid(map, "https://raw.githubusercontent.com/eurostat/gridviz/master/assets/csv/Europe/pop_2018_10km.csv", 10000)
+    const dataset = new gviz_par.ParquetGrid(map, 'https://raw.githubusercontent.com/eurostat/gridviz/master/assets/parquet/Europe/pop_2018_5km.parquet', 5000)
+
 
     //define color for each cell
     const colorFunction = (cell) => {
@@ -38,8 +30,5 @@
 
     //add layer to map
     map.layers = [new gridviz.GridLayer(dataset, [style])]
-        
-    </script>
-</body>
 
-</html>
+</script>
