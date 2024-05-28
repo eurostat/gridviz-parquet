@@ -53,7 +53,7 @@ export class ParquetGrid extends Dataset {
 
                             //format data
                             const nb = names.length
-                            data = data.map(d => {
+                            const data_ = data.map(d => {
                                 const out = {}
                                 for(let i=0; i<nb; i++)
                                     out[names[i]] = d[i]
@@ -65,13 +65,13 @@ export class ParquetGrid extends Dataset {
                             //preprocess/filter
                             if (this.preprocess) {
                                 this.cells = []
-                                for (const c of data) {
+                                for (const c of data_) {
                                     const b = this.preprocess(c)
                                     if (b == false) continue
                                     this.cells.push(c)
                                 }
                             } else {
-                                this.cells = data
+                                this.cells = data_
                             }
 
                             //TODO check if redraw is necessary
