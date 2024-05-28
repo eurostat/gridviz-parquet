@@ -85,7 +85,8 @@ export class ParquetGrid extends Dataset {
                     })
 
                 } catch (error) {
-                    console.error(error);
+                    console.error("Could not load data from " + this.url);
+                    console.error(error)
                     //mark as failed
                     this.infoLoadingStatus = 'failed'
                     this.cells = []
