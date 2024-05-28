@@ -2,7 +2,7 @@
 'use strict'
 
 import { Dataset } from 'gridviz'
-import { parquetRead } from 'hyparquet'
+import { parquetRead, parquetMetadata } from 'hyparquet'
 
 export class ParquetGrid extends Dataset {
 
@@ -41,13 +41,25 @@ export class ParquetGrid extends Dataset {
                         file: arrayBuffer,
                         onComplete: data => {
 
-                            data = data.map(d => {
-                                return {x:0,y:0}
-                            })
+                            //decode header
+                            let header = parquetMetadata(arrayBuffer)
+                            header = header.schema
+                            const names = [], types = []
+                            for(let i=1; i<header.length; i++) {
+                                names.push(header[i].name)
+                                types.push(header[i].type)
+                            }
 
-                            console.log(data)
-                            //TODO
-                            return
+                            //format data
+                            const nb = names.length
+                            data = data.map(d => {
+                                const out = {}
+                                for(let i=0; i<nb; i++){
+                                    out[names[i]] = d[i]
+                                    //TODO type
+                                }
+                                return out
+                            })
 
                             //convert coordinates in numbers
                             for (const c of data) {
