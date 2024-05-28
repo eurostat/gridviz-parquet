@@ -62,8 +62,6 @@ export class ParquetGrid extends Dataset {
                                 return out
                             })
 
-                            console.log(data)
-
                             //preprocess/filter
                             if (this.preprocess) {
                                 this.cells = []
