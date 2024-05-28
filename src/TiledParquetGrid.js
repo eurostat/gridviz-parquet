@@ -125,8 +125,8 @@ export class TiledParquetGrid extends Dataset {
                             file: arrayBuffer,
                             onComplete: data => {
 
-                                // TODO same for all tiles ?
-                                //decode header
+                                //decode header to get attribut names and types
+                                //do it only once, since it is the same for all tiles
                                 if(!this.names && !this.types) {
                                     let schema = parquetMetadata(arrayBuffer).schema
                                     this.names = [], this.types = []
@@ -139,10 +139,9 @@ export class TiledParquetGrid extends Dataset {
                                 }
 
                                 //format data
-                                const nb = this.names.length
                                 data = data.map(d => {
                                     const out = {}
-                                    for (let i = 0; i < nb; i++) {
+                                    for (let i = 0; i < this.names.length; i++) {
                                         out[this.names[i]] = d[i]
                                         out[this.names[i]] = this.types[i] == "number"? Number(d[i]) : d[i]+""
                                     }
