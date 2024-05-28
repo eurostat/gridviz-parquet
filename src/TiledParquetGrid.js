@@ -24,6 +24,10 @@ export class TiledParquetGrid extends Dataset {
          * @private  */
         this.infoLoadingStatus = 'notLoaded'
 
+        //name of the attributes, and type (number/string)
+        this.names = undefined
+        this.types = undefined
+
         /**
          * The cache of the loaded tiles. It is double indexed: by xT and then yT.
          * Example: this.cache[xT][yT] returns the tile at [xT][yT] location.
@@ -123,22 +127,24 @@ export class TiledParquetGrid extends Dataset {
 
                                 // TODO same for all tiles ?
                                 //decode header
-                                let schema = parquetMetadata(arrayBuffer).schema
-                                const names = [], types = []
-                                for (let i = 1; i < schema.length; i++) {
-                                    names.push(schema[i].name)
-                                    const type = schema[i].type + ""
-                                    const type_ = type.includes("INT") || type == "FLOAT" || type == "DOUBLE" ?"number" : "string"
-                                    types.push(type_)
+                                if(!this.names && !this.types) {
+                                    let schema = parquetMetadata(arrayBuffer).schema
+                                    this.names = [], this.types = []
+                                    for (let i = 1; i < schema.length; i++) {
+                                        this.names.push(schema[i].name)
+                                        const type = schema[i].type + ""
+                                        const type_ = type.includes("INT") || type == "FLOAT" || type == "DOUBLE" ?"number" : "string"
+                                        this.types.push(type_)
+                                    }
                                 }
 
                                 //format data
-                                const nb = names.length
+                                const nb = this.names.length
                                 data = data.map(d => {
                                     const out = {}
                                     for (let i = 0; i < nb; i++) {
-                                        out[names[i]] = d[i]
-                                        out[names[i]] = types[i] == "number"? Number(d[i]) : d[i]+""
+                                        out[this.names[i]] = d[i]
+                                        out[this.names[i]] = this.types[i] == "number"? Number(d[i]) : d[i]+""
                                     }
                                     return out
                                 })
