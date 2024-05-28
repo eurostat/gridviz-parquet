@@ -41,6 +41,10 @@ export class ParquetGrid extends Dataset {
                         file: arrayBuffer,
                         onComplete: data => {
 
+                            data = data.map(d => {
+                                return {x:0,y:0}
+                            })
+
                             console.log(data)
                             //TODO
                             return
