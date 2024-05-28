@@ -42,30 +42,27 @@ export class ParquetGrid extends Dataset {
                         onComplete: data => {
 
                             //decode header
-                            let header = parquetMetadata(arrayBuffer)
-                            header = header.schema
-                            const names = [], types = []
+                            let header = parquetMetadata(arrayBuffer).schema
+                            const names = [] //, types = []
                             for(let i=1; i<header.length; i++) {
                                 names.push(header[i].name)
-                                types.push(header[i].type)
+                                //const type = header[i].type + ""
+                                //const type_ = type.includes("INT") || type == "FLOAT" || type == "DOUBLE" ?"number" : "string"
+                                //types.push(type_)
                             }
 
                             //format data
                             const nb = names.length
                             data = data.map(d => {
                                 const out = {}
-                                for(let i=0; i<nb; i++){
+                                for(let i=0; i<nb; i++)
                                     out[names[i]] = d[i]
-                                    //TODO type
-                                }
+                                    //out[names[i]] = types[i] == "number"? d[i] : d[i]+""
+
                                 return out
                             })
 
-                            //convert coordinates in numbers
-                            for (const c of data) {
-                                c.x = +c.x
-                                c.y = +c.y
-                            }
+                            console.log(data)
 
                             //preprocess/filter
                             if (this.preprocess) {
