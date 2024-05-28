@@ -121,7 +121,7 @@ export class TiledParquetGrid extends Dataset {
                             file: arrayBuffer,
                             onComplete: data => {
 
-                                //TODO same for all tiles ?
+                                // TODO same for all tiles ?
                                 //decode header
                                 let header = parquetMetadata(arrayBuffer).schema
                                 const names = [] //, types = []
@@ -134,7 +134,7 @@ export class TiledParquetGrid extends Dataset {
 
                                 //format data
                                 const nb = names.length
-                                const data = data.map(d => {
+                                data = data.map(d => {
                                     const out = {}
                                     for (let i = 0; i < nb; i++)
                                         out[names[i]] = d[i]
