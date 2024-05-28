@@ -31,6 +31,6 @@
     const style = new gridviz.ShapeColorSizeStyle({ color: colorFunction })
 
     //add layer to map
-    map.layers = [new gridviz.GridLayer(dataset, [style])]
+    map.layers = [new gridviz.GridLayer(dataset, [style], {minPixelsPerCell:2})]
 
 </script>
