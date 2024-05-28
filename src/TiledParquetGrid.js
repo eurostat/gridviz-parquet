@@ -115,24 +115,48 @@ export class TiledParquetGrid extends Dataset {
 
                     try {
 
-                        // TODO
+                        const res = await fetch(this.url + xT + '/' + yT + '.parquet')
+                        const arrayBuffer = await res.arrayBuffer()
+                        await parquetRead({
+                            file: arrayBuffer,
+                            onComplete: data => {
 
-                        /*
-                        const data = await csv(this.url + xT + '/' + yT + '.csv')
+                                //TODO same for all tiles ?
+                                //decode header
+                                let header = parquetMetadata(arrayBuffer).schema
+                                const names = [] //, types = []
+                                for (let i = 1; i < header.length; i++) {
+                                    names.push(header[i].name)
+                                    //const type = header[i].type + ""
+                                    //const type_ = type.includes("INT") || type == "FLOAT" || type == "DOUBLE" ?"number" : "string"
+                                    //types.push(type_)
+                                }
 
-                        //if (monitor) monitorDuration('*** TiledGrid parse start')
+                                //format data
+                                const nb = names.length
+                                const data = data.map(d => {
+                                    const out = {}
+                                    for (let i = 0; i < nb; i++)
+                                        out[names[i]] = d[i]
+                                    //out[names[i]] = types[i] == "number"? d[i] : d[i]+""
 
-                        //preprocess/filter
-                        if (this.preprocess) {
-                            cells = []
-                            for (const c of data) {
-                                const b = this.preprocess(c)
-                                if (b == false) continue
-                                cells.push(c)
+                                    return out
+                                })
+
+
+                                //preprocess/filter
+                                if (this.preprocess) {
+                                    cells = []
+                                    for (const c of data) {
+                                        const b = this.preprocess(c)
+                                        if (b == false) continue
+                                        cells.push(c)
+                                    }
+                                } else {
+                                    cells = data
+                                }
                             }
-                        } else {
-                            cells = data
-                        }*/
+                        })
 
                     } catch (error) {
                         //mark as failed

@@ -53,7 +53,7 @@ export class ParquetGrid extends Dataset {
 
                             //format data
                             const nb = names.length
-                            const data_ = data.map(d => {
+                            data = data.map(d => {
                                 const out = {}
                                 for(let i=0; i<nb; i++)
                                     out[names[i]] = d[i]
@@ -65,19 +65,19 @@ export class ParquetGrid extends Dataset {
                             //preprocess/filter
                             if (this.preprocess) {
                                 this.cells = []
-                                for (const c of data_) {
+                                for (const c of data) {
                                     const b = this.preprocess(c)
                                     if (b == false) continue
                                     this.cells.push(c)
                                 }
                             } else {
-                                this.cells = data_
+                                this.cells = data
                             }
 
                             //TODO check if redraw is necessary
                             //that is if the dataset belongs to a layer which is visible at the current zoom level
 
-                            //execute the callback, usually a draw function
+                            //redraw map
                             if (this.map) this.map.redraw()
 
                             this.infoLoadingStatus = 'loaded'
