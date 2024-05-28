@@ -13,7 +13,7 @@
         //the resolutions
         [5000, 10000, 20000, 50000, 100000],
         //the function returning each dataset from the resolution
-        resolution => new gviz_par.ParquetGrid(map, "https://raw.githubusercontent.com/eurostat/gridviz/master/assets/parquet/Europe/pop_2018_" + Math.round(resolution / 1000) + "km_snappy.csv", resolution)
+        resolution => new gviz_par.ParquetGrid(map, "https://raw.githubusercontent.com/eurostat/gridviz/master/assets/parquet/Europe/pop_2018_" + Math.round(resolution / 1000) + "km_snappy.parquet", resolution)
     )
 
     //define color for each cell c
