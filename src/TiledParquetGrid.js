@@ -123,14 +123,16 @@ export class TiledParquetGrid extends Dataset {
 
                                 // TODO same for all tiles ?
                                 //decode header
-                                let header = parquetMetadata(arrayBuffer).schema
+                                let schema = parquetMetadata(arrayBuffer).schema
                                 const names = [] //, types = []
-                                for (let i = 1; i < header.length; i++) {
-                                    names.push(header[i].name)
+                                for (let i = 1; i < schema.length; i++) {
+                                    names.push(schema[i].name)
                                     //const type = header[i].type + ""
                                     //const type_ = type.includes("INT") || type == "FLOAT" || type == "DOUBLE" ?"number" : "string"
                                     //types.push(type_)
                                 }
+
+                                console.log(schema)
 
                                 //format data
                                 const nb = names.length
@@ -143,6 +145,7 @@ export class TiledParquetGrid extends Dataset {
                                     return out
                                 })
 
+                                console.log(data)
 
                                 //preprocess/filter
                                 if (this.preprocess) {

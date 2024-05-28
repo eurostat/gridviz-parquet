@@ -42,10 +42,10 @@ export class ParquetGrid extends Dataset {
                         onComplete: data => {
 
                             //decode header
-                            let header = parquetMetadata(arrayBuffer).schema
+                            let schema = parquetMetadata(arrayBuffer).schema
                             const names = [] //, types = []
-                            for(let i=1; i<header.length; i++) {
-                                names.push(header[i].name)
+                            for(let i=1; i<schema.length; i++) {
+                                names.push(schema[i].name)
                                 //const type = header[i].type + ""
                                 //const type_ = type.includes("INT") || type == "FLOAT" || type == "DOUBLE" ?"number" : "string"
                                 //types.push(type_)
