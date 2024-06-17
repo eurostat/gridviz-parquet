@@ -12,6 +12,9 @@ export class TiledParquetGrid extends Dataset {
     constructor(map, url, resolution, opts = {}) {
         super(map, url, resolution, opts)
 
+        /**  @type {string}  */
+        this.extension = opts.extension || "parquet"
+
         /**
          * The grid info object, from the info.json file.
          *  @type {GridInfo | undefined}
@@ -119,7 +122,7 @@ export class TiledParquetGrid extends Dataset {
 
                     try {
 
-                        const res = await fetch(this.url + xT + '/' + yT + '.parquet')
+                        const res = await fetch(this.url + xT + '/' + yT + '.' + this.extension)
                         const arrayBuffer = await res.arrayBuffer()
                         await parquetRead({
                             file: arrayBuffer,
