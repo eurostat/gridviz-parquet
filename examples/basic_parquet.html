@@ -9,7 +9,7 @@
         .addZoomButtons()
 
     //define dataset
-    const dataset = new gviz_par.ParquetGrid(map, 'https://raw.githubusercontent.com/eurostat/gridviz/master/assets/parquet/Europe/pop_2018_5km_snappy.parquet', 5000)
+    const dataset = new gviz_par.ParquetGrid(map, 'https://raw.githubusercontent.com/eurostat/gridviz-parquet/main/examples/pop_2018_5km_snappy.parquet', 5000)
 
     //define color for each cell
     const colorFunction = (cell) => {
