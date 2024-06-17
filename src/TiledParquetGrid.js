@@ -122,12 +122,12 @@ export class TiledParquetGrid extends Dataset {
 
                     try {
 
-                        const res = await fetch(this.url + xT + '/' + yT + '.' + this.extension)
+                        const url = this.url + xT + '/' + yT + '.' + this.extension
+                        const res = await fetch(url)
                         const arrayBuffer = await res.arrayBuffer()
                         await parquetRead({
                             file: arrayBuffer,
                             onComplete: data => {
-
                                 //decode header to get attribut names and types
                                 //do it only once, since it is the same for all tiles
                                 if(!this.names && !this.types) {
