@@ -11,6 +11,7 @@ export class TiledParquetGrid extends Dataset {
 
     constructor(map, url, resolution, opts = {}) {
         super(map, url, resolution, opts)
+        opts = opts || {}
 
         /**  @type {string}  */
         this.extension = opts.extension || "parquet"
