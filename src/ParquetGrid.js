@@ -55,10 +55,15 @@ export class ParquetGrid extends Dataset {
                         data = data.map(d => {
                             const out = {}
                             for (let i = 0; i < names.length; i++) {
-                                out[names[i]] = d[i]
-                                out[names[i]] = types[i] == "number" ? Number(d[i]) : d[i] + ""
-                            }
+                                let value = d[i]
 
+                                //null value
+                                if(value == null || value == undefined) { out[names[i]] = value; continue }
+
+                                //parse by type
+                                if(types[i] == "number") value = Number(d[i]); else value = value + ""
+                                out[names[i]] = value
+                            }
                             return out
                         })
 

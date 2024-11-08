@@ -145,8 +145,14 @@ export class TiledParquetGrid extends Dataset {
                                 data = data.map(d => {
                                     const out = {}
                                     for (let i = 0; i < this.names.length; i++) {
-                                        out[this.names[i]] = d[i]
-                                        out[this.names[i]] = this.types[i] == "number"? Number(d[i]) : d[i]+""
+                                        let value = d[i]
+
+                                        //null value
+                                        if(value == null || value == undefined) { out[this.names[i]] = value; continue }
+        
+                                        //parse by type
+                                        if(this.types[i] == "number") value = Number(d[i]); else value = value + ""
+                                        out[this.names[i]] = value
                                     }
                                     return out
                                 })
