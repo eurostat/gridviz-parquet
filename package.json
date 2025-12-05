@@ -1,6 +1,6 @@
 {
     "name": "gridviz-parquet",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "Parquet format support for GridViz",
     "keywords": [],
     "homepage": "https://github.com/eurostat/gridviz-parquet",
@@ -34,8 +34,8 @@
         "src/**/*.js"
     ],
     "dependencies": {
-        "gridviz": "^3.0.12",
-        "hyparquet": "^1.5.0"
+        "gridviz": "^3.0.26",
+        "hyparquet": "^1.22.1"
     },
     "devDependencies": {
         "@babel/core": "^7.9.0",
