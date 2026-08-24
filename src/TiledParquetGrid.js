@@ -109,10 +109,15 @@ export class TiledParquetGrid extends Dataset {
                 //prepare cache
                 if (!this.cache[xT]) this.cache[xT] = {}
 
-                //check if tile exists in the cache
+                //check if tile exists in the cache - retry tiles that previously
+                //failed instead of treating 'failed' as permanently handled (matches
+                //gridviz core's TiledGrid.js). Without this, any tile whose fetch/parse
+                //fails once (e.g. request contention during a fast pan/zoom) is a
+                //permanent blank hole for the rest of the session: nothing ever calls
+                //getData() again for that tile in a way that would retry it.
                 /** @type {object} */
                 let tile = this.cache[xT][yT]
-                if (tile) continue
+                if (tile && tile !== 'failed') continue
 
                 //mark tile as loading
                 this.cache[xT][yT] = "loading";
@@ -124,6 +129,7 @@ export class TiledParquetGrid extends Dataset {
 
                         const url = this.url + xT + '/' + yT + '.' + this.extension
                         const res = await fetch(url)
+                        if (!res.ok) throw new Error('Tile request failed: ' + res.status + ' ' + url)
                         const arrayBuffer = await res.arrayBuffer()
                         await parquetRead({
                             file: arrayBuffer,
@@ -174,6 +180,21 @@ export class TiledParquetGrid extends Dataset {
                     } catch (error) {
                         //mark as failed
                         this.cache[xT][yT] = 'failed'
+                        //retry-on-revisit (above) only helps once something else
+                        //happens to call getData() over this tile again later - if the
+                        //user stops interacting right after the failure (e.g. right
+                        //after the pan/zoom that triggered it), nothing else would ever
+                        //do that, and the tile stays permanently blank regardless. Self-
+                        //heal instead: clear the failed marker after a short delay and
+                        //ask for a redraw, so a transient failure (e.g. request
+                        //contention from a burst of tiles fetched during a fast pan)
+                        //resolves on its own without needing further user interaction.
+                        setTimeout(() => {
+                            if (this.cache[xT] && this.cache[xT][yT] === 'failed') {
+                                delete this.cache[xT][yT]
+                                this.map.redraw()
+                            }
+                        }, 1500)
                         return
                     }
 
