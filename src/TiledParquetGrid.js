@@ -118,7 +118,17 @@ export class TiledParquetGrid extends Dataset {
                 //prepare cache
                 if (!this.cache[xT]) this.cache[xT] = {}
 
-                //check if tile exists in the cache
+                //check if tile exists in the cache. A 'failed' tile is deliberately
+                //NOT retried here: getData() runs on every redraw, and redraw() fires
+                //on every pointermove during a pan/zoom (dozens of times per second).
+                //Retrying synchronously on every one of those calls turns one transient
+                //failure into a self-sustaining retry storm - many requests per second
+                //to the same tile URL, none of which ever get a chance to succeed -
+                //which starves that tile (and, by saturating the browser's per-origin
+                //connection limit, neighboring tiles too) into staying blank
+                //indefinitely. The scheduled retry in the catch block below already
+                //clears 'failed' and triggers a redraw a fixed 1500ms after the
+                //failure, which is the only retry path we want.
                 /** @type {object} */
                 let tile = this.cache[xT][yT]
                 if (tile) {
@@ -137,8 +147,14 @@ export class TiledParquetGrid extends Dataset {
 
                         const url = this.url + xT + '/' + yT + '.' + this.extension
                         const res = await fetch(url)
-                        const arrayBuffer = await res.arrayBuffer()
-                        await parquetRead({
+                        //no file for the tile: there is nothing in that place (the tiles of a tiled grid are made only where
+                        //there are cells; more than half of the tiles in the bounds of the accessibility grids have no file).
+                        //It is an empty tile, not a failure to try again: a retry would ask for it again and again for as long as it is in the view
+                        const empty = res.status === 404
+                        if (!empty && !res.ok) throw new Error('Tile request failed: ' + res.status + ' ' + url)
+                        const arrayBuffer = empty ? undefined : await res.arrayBuffer()
+                        if (empty) cells = []
+                        else await parquetRead({
                             file: arrayBuffer,
                             onComplete: data => {
                                 //decode header to get attribut names and types
@@ -187,6 +203,18 @@ export class TiledParquetGrid extends Dataset {
                     } catch (error) {
                         //mark as failed
                         this.cache[xT][yT] = 'failed'
+                        //this is the only retry path (see the skip-if-cached check
+                        //above): clear the failed marker after a short delay and ask
+                        //for a redraw, so a transient failure (e.g. request contention
+                        //from a burst of tiles fetched during a fast pan) resolves on
+                        //its own, at a bounded rate, without needing further user
+                        //interaction.
+                        setTimeout(() => {
+                            if (this.cache[xT] && this.cache[xT][yT] === 'failed') {
+                                delete this.cache[xT][yT]
+                                this._redrawSoon()
+                            }
+                        }, 1500)
                         return
                     }
 
@@ -198,6 +226,9 @@ export class TiledParquetGrid extends Dataset {
                     const tile_ = getGridTile(cells, xT, yT, this.info)
                     this.cache[xT][yT] = tile_
                     this._keep(tile_)
+
+                    //an empty tile has nothing to draw
+                    if (tile_.cells.length === 0) return
 
                     //if (monitor) monitorDuration('storage')
 
@@ -239,6 +270,18 @@ export class TiledParquetGrid extends Dataset {
             }
         }
         return this
+    }
+
+    /**
+     * One redraw for the tiles that are tried again together (their retries are within a few milliseconds of each other).
+     * @private
+     */
+    _redrawSoon() {
+        if (this._redrawTimer) return
+        this._redrawTimer = setTimeout(() => {
+            this._redrawTimer = undefined
+            this.map.redraw()
+        }, 50)
     }
 
     /**
