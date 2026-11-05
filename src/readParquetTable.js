@@ -8,7 +8,7 @@ import { parquetRead, parquetMetadata } from 'hyparquet'
  * Shared by the worker that decodes tiles and by the main thread, when no worker can run.
  *
  * @param {ArrayBuffer} buffer
- * @returns {Promise<{names:Array.<string>, columns:Array.<Float64Array|Array>, length:number}>}
+ * @returns {Promise<{names:Array.<string>, types:Array.<string>, columns:Array.<Float64Array|Array>, length:number}>}
  */
 export async function readParquetTable(buffer) {
     const schema = parquetMetadata(buffer).schema
@@ -50,5 +50,5 @@ export async function readParquetTable(buffer) {
             return numeric[k] ? Number(v) : v + ''
         })
     })
-    return { names, columns, length }
+    return { names, types: numeric.map((n) => (n ? 'number' : 'string')), columns, length }
 }

@@ -42,7 +42,7 @@ function worker() {
                 const request = requests.get(msg.id)
                 requests.delete(msg.id)
                 if (!request) return
-                if (msg.error) request.reject(new Error(msg.error))
+                if (msg.error) request.reject(Object.assign(new Error(msg.error), { status: msg.status }))
                 else request.resolve(msg)
             }
             pool.push(w)
@@ -56,14 +56,14 @@ async function fetchOnMainThread(url) {
     const response = await fetch(url)
     // no file for the tile: there is nothing in that place
     if (response.status === 404) return { length: 0 }
-    if (!response.ok) throw new Error('Tile request failed: ' + response.status + ' ' + url)
+    if (!response.ok) throw Object.assign(new Error('Tile request failed: ' + response.status + ' ' + url), { status: response.status })
     return readParquetTable(await response.arrayBuffer())
 }
 
 /**
  * Fetches and decodes a tile.
  * @param {string} url
- * @returns {Promise<{names?:Array.<string>, columns?:Array.<Float64Array|Array>, length:number}>} no rows for a tile that has no file. Rejected for any other failure.
+ * @returns {Promise<{names?:Array.<string>, types?:Array.<string>, columns?:Array.<Float64Array|Array>, length:number}>} no rows for a tile that has no file. Rejected for any other failure, with the status of the answer if there was one.
  */
 export function fetchTable(url) {
     if (workersFailed) return fetchOnMainThread(url)

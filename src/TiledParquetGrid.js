@@ -149,16 +149,20 @@ export class TiledParquetGrid extends Dataset {
 
                     try {
                         const table = await fetchTable(url)
-                        //the names of the attributes, as they were given on the main thread
-                        if (table.names && !this.names) this.names = table.names
+                        //the names and types of the attributes: the same for all tiles
+                        if (table.names && !this.names) {
+                            this.names = table.names
+                            this.types = table.types
+                        }
                         cells = await cellsOfTable(table, this.preprocess)
                     } catch (error) {
                         if (ended) ended()
                         //A tile with no file answers 404: an empty tile. On a server that sends no CORS header with its 404, the browser gives a failure
-                        //with no status instead, which can't be told from a failure of the network. It is tried again, then taken as the empty tile it most likely is.
-                        const failures = (tileFailures.get(url) || 0) + 1
+                        //with no status instead, which can't be told from a failure of the network. An application that knows its server does this
+                        //can have such a tile taken as empty (failuresToEmpty). A server that answers with an error is not saying the tile is empty.
+                        const failures = error.status === undefined ? (tileFailures.get(url) || 0) + 1 : 0
                         tileFailures.set(url, failures)
-                        if (failures >= TiledParquetGrid.failuresToEmpty) {
+                        if (failures && failures >= TiledParquetGrid.failuresToEmpty) {
                             const tile_ = getGridTile([], xT, yT, this.info)
                             this.cache[xT][yT] = tile_
                             this._keep(tile_)
@@ -331,10 +335,11 @@ export class TiledParquetGrid extends Dataset {
 TiledParquetGrid.maxCachedCells = 1500000
 
 /**
- * How many failures with no answer from the server make a tile count as empty (see getData).
+ * How many failures with no answer from the server make a tile count as empty (see getData). By default they never do: the tile is tried again every 1.5 s, for
+ * as long as it is in the view. For a server that sends its 404 without a CORS header, where the browser reports a missing tile as a failure of the network.
  * @type {number}
  */
-TiledParquetGrid.failuresToEmpty = 2
+TiledParquetGrid.failuresToEmpty = Infinity
 
 /**
  * Told about each request of a tile: an application can show that it is loading. Requests go through workers, which a wrapper of the page's fetch does not see.
