@@ -4,8 +4,8 @@
 /** @typedef {{ dims: object, crs: string, tileSizeCell: number, originPoint: {x:number,y:number}, resolutionGeo: number, tilingBounds:object, format:object }} GridInfo */
 
 import { Dataset } from 'gridviz'
-import { parquetRead, parquetMetadata } from 'hyparquet'
 import { json } from 'd3-fetch'
+import { fetchTable, cellsOfTable } from './tileTable.js'
 
 // The tiles that are loaded are kept, so that going back to a place needs no new request. They are kept as lists of cell objects, which
 // take a lot of memory (the education grid of the Statistical Atlas reached 1.5 GB after some minutes of panning and zooming), so the
@@ -17,6 +17,8 @@ const KEEP_MS = 3000
 const keptTiles = new Set()
 let keptCells = 0
 const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now())
+/** How many times the request of each tile has failed with no answer */
+const tileFailures = new Map()
 
 export class TiledParquetGrid extends Dataset {
 
@@ -140,67 +142,29 @@ export class TiledParquetGrid extends Dataset {
                 //mark tile as loading
                 this.cache[xT][yT] = "loading";
                 (async () => {
-                    //request tile
+                    //request tile, off the main thread (see tileTable.js)
+                    const url = this.url + xT + '/' + yT + '.' + this.extension
+                    const ended = TiledParquetGrid.onTileRequest ? TiledParquetGrid.onTileRequest(this, xT, yT) : undefined
                     let cells
 
                     try {
-
-                        const url = this.url + xT + '/' + yT + '.' + this.extension
-                        const res = await fetch(url)
-                        //no file for the tile: there is nothing in that place (the tiles of a tiled grid are made only where
-                        //there are cells; more than half of the tiles in the bounds of the accessibility grids have no file).
-                        //It is an empty tile, not a failure to try again: a retry would ask for it again and again for as long as it is in the view
-                        const empty = res.status === 404
-                        if (!empty && !res.ok) throw new Error('Tile request failed: ' + res.status + ' ' + url)
-                        const arrayBuffer = empty ? undefined : await res.arrayBuffer()
-                        if (empty) cells = []
-                        else await parquetRead({
-                            file: arrayBuffer,
-                            onComplete: data => {
-                                //decode header to get attribut names and types
-                                //do it only once, since it is the same for all tiles
-                                if(!this.names && !this.types) {
-                                    let schema = parquetMetadata(arrayBuffer).schema
-                                    this.names = [], this.types = []
-                                    for (let i = 1; i < schema.length; i++) {
-                                        this.names.push(schema[i].name)
-                                        const type = schema[i].type + ""
-                                        const type_ = type.includes("INT") || type == "FLOAT" || type == "DOUBLE" ?"number" : "string"
-                                        this.types.push(type_)
-                                    }
-                                }
-
-                                //format data
-                                data = data.map(d => {
-                                    const out = {}
-                                    for (let i = 0; i < this.names.length; i++) {
-                                        let value = d[i]
-
-                                        //null value
-                                        if(value == null || value == undefined) { out[this.names[i]] = value; continue }
-        
-                                        //parse by type
-                                        if(this.types[i] == "number") value = Number(d[i]); else value = value + ""
-                                        out[this.names[i]] = value
-                                    }
-                                    return out
-                                })
-
-                                //preprocess/filter
-                                if (this.preprocess) {
-                                    cells = []
-                                    for (const c of data) {
-                                        const b = this.preprocess(c)
-                                        if (b == false) continue
-                                        cells.push(c)
-                                    }
-                                } else {
-                                    cells = data
-                                }
-                            }
-                        })
-
+                        const table = await fetchTable(url)
+                        //the names of the attributes, as they were given on the main thread
+                        if (table.names && !this.names) this.names = table.names
+                        cells = await cellsOfTable(table, this.preprocess)
                     } catch (error) {
+                        if (ended) ended()
+                        //A tile with no file answers 404: an empty tile. On a server that sends no CORS header with its 404, the browser gives a failure
+                        //with no status instead, which can't be told from a failure of the network. It is tried again, then taken as the empty tile it most likely is.
+                        const failures = (tileFailures.get(url) || 0) + 1
+                        tileFailures.set(url, failures)
+                        if (failures >= TiledParquetGrid.failuresToEmpty) {
+                            const tile_ = getGridTile([], xT, yT, this.info)
+                            this.cache[xT][yT] = tile_
+                            this._keep(tile_)
+                            return
+                        }
+
                         //mark as failed
                         this.cache[xT][yT] = 'failed'
                         //this is the only retry path (see the skip-if-cached check
@@ -217,6 +181,7 @@ export class TiledParquetGrid extends Dataset {
                         }, 1500)
                         return
                     }
+                    if (ended) ended()
 
                     //store tile in cache
                     if (!this.info) {
@@ -364,6 +329,19 @@ export class TiledParquetGrid extends Dataset {
  * @type {number}
  */
 TiledParquetGrid.maxCachedCells = 1500000
+
+/**
+ * How many failures with no answer from the server make a tile count as empty (see getData).
+ * @type {number}
+ */
+TiledParquetGrid.failuresToEmpty = 2
+
+/**
+ * Told about each request of a tile: an application can show that it is loading. Requests go through workers, which a wrapper of the page's fetch does not see.
+ * It is given the dataset and the position of the tile, and can return a function, called when the tile has been answered.
+ * @type {(function(TiledParquetGrid, number, number):(function():void|void))|undefined}
+ */
+TiledParquetGrid.onTileRequest = undefined
 
 function getGridTile(cells, xT, yT, gridInfo) {
 
