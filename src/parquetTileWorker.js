@@ -10,7 +10,10 @@ self.onmessage = async (event) => {
             self.postMessage({ id, length: 0 })
             return
         }
-        if (!response.ok) throw new Error('Tile request failed: ' + response.status + ' ' + url)
+        if (!response.ok) {
+            self.postMessage({ id, error: 'Tile request failed: ' + response.status + ' ' + url, status: response.status })
+            return
+        }
         const table = await readParquetTable(await response.arrayBuffer())
         const transfer = table.columns.filter((column) => column instanceof Float64Array).map((column) => column.buffer)
         self.postMessage({ id, ...table }, transfer)

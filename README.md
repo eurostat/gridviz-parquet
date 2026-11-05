@@ -25,6 +25,6 @@ TiledParquetGrid.onTileRequest = (dataset, xT, yT) => {
 }
 ```
 
-`TiledParquetGrid.failuresToEmpty` (2 by default) is how many failures with no answer from the server make a tile count as empty: some servers send their 404 without a CORS header, and the browser reports it as a failure of the network.
+A tile whose request fails is tried again every 1.5 s. Some servers send their 404 without a CORS header, which the browser reports as a failure of the network, so a missing tile is asked for again and again. For such a server, set `TiledParquetGrid.failuresToEmpty` to how many failures with no answer make a tile count as empty (never, by default).
 
 After changing `src/parquetTileWorker.js` or `src/readParquetTable.js`, run `npm run build-worker` (`npm run bp` does it too).

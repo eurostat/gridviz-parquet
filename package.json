@@ -1,6 +1,6 @@
 {
     "name": "gridviz-parquet",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "Parquet format support for GridViz",
     "keywords": [],
     "homepage": "https://github.com/eurostat/gridviz-parquet",
