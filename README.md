@@ -25,6 +25,8 @@ TiledParquetGrid.onTileRequest = (dataset, xT, yT) => {
 }
 ```
 
+With a gridviz map that supports `onGridLoad` and `beginGridLoad`, tiled Parquet metadata and tiles also report through that map's loading events. Tile events include their extent and `worker: true`; worker loading can fall back to the main thread, so a page's fetch wrapper may see the same request too. A 404 reports `missing`, while an indistinguishable network/CORS failure reports `error`, even if `failuresToEmpty` treats the tile as empty. The existing `onTileRequest` hook still runs. `TiledParquetGrid.reportsGridLoading` is `true` in versions that support these events; older gridviz maps continue to work without them.
+
 A tile whose request fails is tried again every 1.5 s. Some servers send their 404 without a CORS header, which the browser reports as a failure of the network, so a missing tile is asked for again and again. For such a server, set `TiledParquetGrid.failuresToEmpty` to how many failures with no answer make a tile count as empty (never, by default).
 
 After changing `src/parquetTileWorker.js` or `src/readParquetTable.js`, run `npm run build-worker` (`npm run bp` does it too).

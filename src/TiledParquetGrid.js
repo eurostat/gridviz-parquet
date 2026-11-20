@@ -62,6 +62,8 @@ export class TiledParquetGrid extends Dataset {
      */
     loadInfo() {
         if (!this.info && this.infoLoadingStatus === 'notLoaded') {
+            const request = { dataset: this, kind: 'info', url: this.url + 'info.json' }
+            const finish = this.map && this.map.beginGridLoad ? this.map.beginGridLoad(request) : undefined
             ; (async () => {
                 try {
                     const data = await json(this.url + 'info.json')
@@ -69,9 +71,11 @@ export class TiledParquetGrid extends Dataset {
                     this.resolution = data.resolutionGeo
                     this.infoLoadingStatus = 'loaded'
                     this.map.redraw()
+                    if (finish) finish('loaded')
                 } catch (error) {
                     //mark as failed
                     this.infoLoadingStatus = 'failed'
+                    if (finish) finish('error', error)
                 }
             })()
         } else if ((this.infoLoadingStatus === 'loaded' || this.infoLoadingStatus === 'failed'))
@@ -144,11 +148,21 @@ export class TiledParquetGrid extends Dataset {
                 (async () => {
                     //request tile, off the main thread (see tileTable.js)
                     const url = this.url + xT + '/' + yT + '.' + this.extension
+                    const span = this.info.resolutionGeo * this.info.tileSizeCell
+                    const x = this.info.originPoint.x + span * xT
+                    const y = this.info.originPoint.y + span * yT
+                    const request = {
+                        dataset: this, kind: 'tile', url, tile: { x: xT, y: yT },
+                        extent: { xMin: x, xMax: x + span, yMin: y, yMax: y + span }, worker: true,
+                    }
                     const ended = TiledParquetGrid.onTileRequest ? TiledParquetGrid.onTileRequest(this, xT, yT) : undefined
+                    const finish = this.map && this.map.beginGridLoad ? this.map.beginGridLoad(request) : undefined
                     let cells
+                    let outcome = 'loaded'
 
                     try {
                         const table = await fetchTable(url)
+                        if (table.missing) outcome = 'missing'
                         //the names and types of the attributes: the same for all tiles
                         if (table.names && !this.names) {
                             this.names = table.names
@@ -157,6 +171,7 @@ export class TiledParquetGrid extends Dataset {
                         cells = await cellsOfTable(table, this.preprocess)
                     } catch (error) {
                         if (ended) ended()
+                        if (finish) finish('error', error)
                         //A tile with no file answers 404: an empty tile. On a server that sends no CORS header with its 404, the browser gives a failure
                         //with no status instead, which can't be told from a failure of the network. An application that knows its server does this
                         //can have such a tile taken as empty (failuresToEmpty). A server that answers with an error is not saying the tile is empty.
@@ -186,6 +201,7 @@ export class TiledParquetGrid extends Dataset {
                         return
                     }
                     if (ended) ended()
+                    if (finish) finish(outcome)
 
                     //store tile in cache
                     if (!this.info) {
@@ -340,6 +356,9 @@ TiledParquetGrid.maxCachedCells = 1500000
  * @type {number}
  */
 TiledParquetGrid.failuresToEmpty = Infinity
+
+/** Whether this version reports requests through gridviz's Map loading API, when available. */
+TiledParquetGrid.reportsGridLoading = true
 
 /**
  * Told about each request of a tile: an application can show that it is loading. Requests go through workers, which a wrapper of the page's fetch does not see.

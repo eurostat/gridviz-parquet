@@ -7,7 +7,7 @@ self.onmessage = async (event) => {
         const response = await fetch(url)
         // no file for the tile: there is nothing in that place
         if (response.status === 404) {
-            self.postMessage({ id, length: 0 })
+            self.postMessage({ id, length: 0, missing: true })
             return
         }
         if (!response.ok) {
